@@ -18,12 +18,7 @@ var options = {
             title: "Yareu API",
             version: "1.0.0",
             description: "API documentation for Yareu"
-        },
-        servers: [
-            {
-                url: "http://localhost:3000"
-            }
-        ]
+        }
     },
     apis: ["app.js"]
 };
