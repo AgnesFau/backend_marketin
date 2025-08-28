@@ -34,6 +34,12 @@ app.use('/swaggerdocs', swaggerUI.serve, swaggerUI.setup(swagger));
  *     responses:
  *       200:
  *         description: "A hello world message"
+ * /users/getallusers:
+ *   get:
+ *     description: "Returns a list of all users"
+ *     responses:
+ *       200:
+ *         description: "A list of users"
  */
 
 app.use(logger('dev'));
