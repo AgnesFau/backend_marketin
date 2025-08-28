@@ -36,7 +36,7 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *         description: "A hello world message"
  * /users/login:
  *   post:
- *     summary: Login user dengan email & password (Firebase Authentication)
+ *     summary: Login user with email & password (Firebase Authentication)
  *     tags:
  *       - Auth
  *     requestBody:
@@ -57,7 +57,7 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                 example: testuser123
  *     responses:
  *       200:
- *         description: Login sukses, return token
+ *         description: Login success, return token
  *         content:
  *           application/json:
  *             schema:
@@ -74,7 +74,92 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                 email:
  *                   type: string
  *       401:
- *         description: Email atau password salah
+ *         description: Wrong email or password
+ * /users/register:
+ *   post:
+ *     summary: Register user baru dengan email, password, username, nama organisasi, dan logo image
+ *     tags:
+ *       - Auth
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - username
+ *               - companyName
+ *               - logo
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email user
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 description: Password user
+ *                 example: myPassword123
+ *               username:
+ *                 type: string
+ *                 description: Username / display name
+ *                 example: user123
+ *               companyName:
+ *                 type: string
+ *                 description: Nama organisasi / perusahaan
+ *                 example: My Company
+ *               logo:
+ *                 type: string
+ *                 format: binary
+ *                 description: Logo image file
+ *     responses:
+ *       201:
+ *         description: User berhasil terdaftar
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: User registered successfully
+ *                 uid:
+ *                   type: string
+ *                   example: firebase-uid
+ *                 email:
+ *                   type: string
+ *                   example: user@example.com
+ *                 username:
+ *                   type: string
+ *                   example: user123
+ *                 companyName:
+ *                   type: string
+ *                   example: My Company
+ *                 logoUrl:
+ *                   type: string
+ *                   example: https://xyz.supabase.co/storage/v1/object/public/logos/user123_logo.png
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Missing required fields
+ *       500:
+ *         description: Error server atau upload gagal
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Firebase or Supabase error message
  */
 
 app.use(logger("dev"));
