@@ -8,6 +8,7 @@ var logger = require("morgan");
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var testsRouter = require("./routes/tests");
+var authRouter = require("./routes/auth");
 
 var app = express();
 
@@ -15,9 +16,9 @@ var options = {
   swaggerDefinition: {
     openapi: "3.0.0",
     info: {
-      title: "Yareu API",
+      title: "MarketiIn API",
       version: "1.0.0",
-      description: "API documentation for Yareu",
+      description: "API documentation for MarketiIn",
     },
   },
   apis: ["app.js"],
@@ -34,7 +35,7 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *     responses:
  *       200:
  *         description: "A hello world message"
- * /users/login:
+ * /auth/login:
  *   post:
  *     summary: Login user with email & password (Firebase Authentication)
  *     tags:
@@ -75,7 +76,7 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                   type: string
  *       401:
  *         description: Wrong email or password
- * /users/register:
+ * /auth/register:
  *   post:
  *     summary: Register user baru dengan email, password, username, nama organisasi, dan logo image
  *     tags:
@@ -92,6 +93,7 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *               - username
  *               - companyName
  *               - logo
+ *               - role
  *             properties:
  *               email:
  *                 type: string
@@ -114,6 +116,9 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                 type: string
  *                 format: binary
  *                 description: Logo image file
+ *               role:
+ *                 type: String
+ *                 example: EO || UMKM
  *     responses:
  *       201:
  *         description: User berhasil terdaftar
@@ -137,6 +142,9 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                 companyName:
  *                   type: string
  *                   example: My Company
+ *                 role:
+ *                   type: String
+ *                   example: EO || UMKM
  *                 logoUrl:
  *                   type: string
  *                   example: https://xyz.supabase.co/storage/v1/object/public/logos/user123_logo.png
@@ -160,6 +168,86 @@ app.use("/swaggerdocs", swaggerUI.serve, swaggerUI.setup(swagger));
  *                 error:
  *                   type: string
  *                   example: Firebase or Supabase error message
+ * /auth/send-otp:
+ *   post:
+ *     summary: Mengirim OTP ke email
+ *     tags: [OTP]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: OTP berhasil dikirim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: OTP sent successfully
+ *       400:
+ *         description: Email tidak ada / invalid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Email is required
+ * /auth/verify-otp:
+ *   post:
+ *     summary: Verifikasi OTP
+ *     tags: [OTP]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otp
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP berhasil diverifikasi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: OTP verified successfully
+ *       400:
+ *         description: OTP salah atau expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid OTP
  */
 
 app.use(logger("dev"));
@@ -170,6 +258,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/auth", authRouter);
 app.use("/tests", testsRouter);
 
 module.exports = app;
