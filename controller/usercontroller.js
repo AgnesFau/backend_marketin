@@ -1,4 +1,3 @@
-const { UserRecord } = require("firebase-admin/auth");
 const { auth, db } = require("../database/firebase");
 
 async function authenticateToken(req, res, next) {
