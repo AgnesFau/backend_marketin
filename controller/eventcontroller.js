@@ -1,6 +1,6 @@
 const { db } = require("../database/firebase");
 const supabase = require("../database/supabase");
-  
+
 async function getEventDataById(req, res, next) {
   try {
     const eventId = req.params.id;
@@ -20,7 +20,7 @@ async function getEventDataById(req, res, next) {
 
 async function getEventDataByEO(req, res, next) {
   try {
-    const eo_id = req.params.id;
+    const eo_id = req.user.uid;
     const eventDocs = await db
       .collection("events")
       .where("eo_id", "==", eo_id)
@@ -30,7 +30,10 @@ async function getEventDataByEO(req, res, next) {
       return res.status(404).json({ error: "No events found for this EO" });
     }
 
-    req.events = eventDocs.docs.map((doc) => doc.data());
+    req.events = eventDocs.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     next();
   } catch (error) {
     console.error("Error fetching events by EO:", error);
@@ -46,7 +49,10 @@ async function getAllEventData(req, res, next) {
       return res.status(404).json({ error: "No events found" });
     }
 
-    req.events = eventDocs.docs.map((doc) => doc.data());
+    req.events = eventDocs.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
     next();
   } catch (error) {
     console.error("Error fetching all events:", error);
@@ -56,12 +62,11 @@ async function getAllEventData(req, res, next) {
 
 async function addNewEvent(req, res, next) {
   try {
-    const {
+    let {
       name,
       address,
       description,
       category,
-      price,
       date,
       contact_person,
       close_registration,
@@ -72,12 +77,30 @@ async function addNewEvent(req, res, next) {
       !address ||
       !description ||
       !category ||
-      !price ||
       !date ||
       !contact_person ||
       !close_registration
     ) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+    console.log("Category parsed:", category);
+
+    if (typeof category === "string") {
+      try {
+        category = JSON.parse(category);
+      } catch (err) {
+        return res
+          .status(400)
+          .json({ error: "Category must be valid JSON" + err });
+      }
+    }
+
+    console.log("Category parsed:", category);
+
+    if (typeof category !== "object" || Array.isArray(category)) {
+      return res
+        .status(400)
+        .json({ error: "Category must be a map of position and price" });
     }
 
     const eo_id = req.user.uid;
@@ -87,10 +110,14 @@ async function addNewEvent(req, res, next) {
       const posterFile = req.files.poster[0];
       const { data, error: uploadError } = await supabase.storage
         .from("events")
-        .upload(`posters/${eo_id}_${posterFile.originalname}`, posterFile.buffer, {
-          contentType: posterFile.mimetype,
-          upsert: true,
-        });
+        .upload(
+          `posters/${eo_id}_${posterFile.originalname}`,
+          posterFile.buffer,
+          {
+            contentType: posterFile.mimetype,
+            upsert: true,
+          }
+        );
 
       if (uploadError) throw uploadError;
 
@@ -122,7 +149,6 @@ async function addNewEvent(req, res, next) {
       description,
       mapping: mappingUrl,
       category,
-      price,
       date,
       poster: posterUrl,
       contact_person,
@@ -136,7 +162,7 @@ async function addNewEvent(req, res, next) {
     res.status(201).json({ id: eventRef.id, ...newEvent });
   } catch (error) {
     console.error("Error adding new event:", error);
-    res.status(500).json({ error: "Failed to add new event" });
+    res.status(500).json({ error: "Failed to add new event" + err });
   }
 }
 

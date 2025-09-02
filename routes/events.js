@@ -1,6 +1,11 @@
 var express = require("express");
 const { authenticateToken } = require("../controller/usercontroller");
-const { getEventDataByEO, getEventDataById, getAllEventData, addNewEvent } = require("../controller/eventcontroller");
+const {
+  getEventDataByEO,
+  getEventDataById,
+  getAllEventData,
+  addNewEvent,
+} = require("../controller/eventcontroller");
 var router = express.Router();
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
@@ -81,14 +86,7 @@ router.get("/eventbyid/:id", getEventDataById, function (req, res, next) {
  *     summary: Ambil semua event berdasarkan Event Organizer (EO)
  *     tags: [Event]
  *     security:
- *       - bearerAuth: []   # karena pakai authenticateToken (JWT)
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: ID Event Organizer
- *         schema:
- *           type: string
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Daftar event oleh EO berhasil diambil
@@ -111,81 +109,119 @@ router.get("/eventbyid/:id", getEventDataById, function (req, res, next) {
  *       401:
  *         description: Unauthorized, token tidak valid
  */
-router.get("/eventbyeo/:id", authenticateToken, getEventDataByEO, function (req, res, next) {
-  res.json(req.events);
-});
+router.get(
+  "/eventbyeo/:id",
+  authenticateToken,
+  getEventDataByEO,
+  function (req, res, next) {
+    res.json(req.events);
+  }
+);
 
 /**
  * @openapi
- * /events/addevent:
+ * /events/addnewevent:
  *   post:
- *     summary: Add a new event
+ *     summary: Create a new event
  *     tags: [Events]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
  *             type: object
- *             required:
- *               - name
- *               - address
- *               - description
- *               - category
- *               - price
- *               - date
- *               - poster
- *               - contact_person
- *               - close_registration
  *             properties:
  *               name:
  *                 type: string
- *                 example: Music Festival 2025
+ *                 example: "Music Concert"
  *               address:
  *                 type: string
- *                 example: Jakarta Convention Center
+ *                 example: "Jakarta Convention Center"
  *               description:
  *                 type: string
- *                 example: Annual international music festival
- *               mapping:
- *                 type: string
- *                 format: binary
- *                 description: Optional event mapping file (PDF/Image/etc.)
+ *                 example: "Konser musik terbesar tahun ini."
  *               category:
- *                 type: string
- *                 example: Concert
- *               price:
- *                 type: number
- *                 example: 50000
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: object
+ *                   properties:
+ *                     position:
+ *                       type: string
+ *                       example: "Cat 1"
+ *                     price:
+ *                       type: number
+ *                       example: 500000
+ *                 example:
+ *                   cat1:
+ *                     position: "Cat 1"
+ *                     price: 500000
+ *                   cat2:
+ *                     position: "Cat 2"
+ *                     price: 350000
+ *                   cat3:
+ *                     position: "Cat 3"
+ *                     price: 200000
  *               date:
  *                 type: string
- *                 format: date
- *                 example: 2025-12-31
+ *                 format: date-time
+ *                 example: "2025-09-10T19:00:00Z"
+ *               contact_person:
+ *                 type: string
+ *                 example: "08123456789"
+ *               close_registration:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2025-09-09T23:59:59Z"
  *               poster:
  *                 type: string
  *                 format: binary
- *                 description: Event poster image
- *               contact_person:
+ *               mapping:
  *                 type: string
- *                 example: +628123456789
- *               close_registration:
- *                 type: string
- *                 format: date
- *                 example: 2025-12-25
+ *                 format: binary
  *     responses:
  *       201:
  *         description: Event created successfully
- *       400:
- *         description: Missing required fields
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Failed to add new event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   example: "abc123"
+ *                 name:
+ *                   type: string
+ *                   example: "Music Concert"
+ *                 address:
+ *                   type: string
+ *                   example: "Jakarta Convention Center"
+ *                 description:
+ *                   type: string
+ *                   example: "Konser musik terbesar tahun ini."
+ *                 mapping:
+ *                   type: string
+ *                   example: "https://storage.supabase.co/events/mappings/xxx.png"
+ *                 category:
+ *                   type: object
+ *                 poster:
+ *                   type: string
+ *                   example: "https://storage.supabase.co/events/posters/xxx.png"
+ *                 contact_person:
+ *                   type: string
+ *                   example: "08123456789"
+ *                 close_registration:
+ *                   type: string
+ *                   format: date-time
+ *                   example: "2025-09-09T23:59:59Z"
+ *                 eo_id:
+ *                   type: string
+ *                   example: "user123"
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
  */
 router.post(
-  "/addevent",
+  "/addnewevent",
   authenticateToken,
   upload.fields([
     { name: "poster", maxCount: 1 },
@@ -193,7 +229,5 @@ router.post(
   ]),
   addNewEvent
 );
-router.post("/add", authenticateToken, addNewEvent);
-
 
 module.exports = router;
