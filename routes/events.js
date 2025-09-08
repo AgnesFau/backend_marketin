@@ -10,7 +10,10 @@ const {
 } = require("../controller/eventcontroller");
 var router = express.Router();
 const multer = require("multer");
-const { addProposal } = require("../controller/proposalcontroller");
+const {
+  addProposal,
+  getAllProposalByEO,
+} = require("../controller/proposalcontroller");
 const upload = multer({ storage: multer.memoryStorage() });
 
 /**
@@ -391,4 +394,102 @@ router.post(
   addProposal
 );
 
+/**
+ * @swagger
+ * /events/getallproposal:
+ *   get:
+ *     summary: Get all proposals
+ *     description: Retrieve all proposals with UMKM and event details
+ *     tags: [Proposal]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Proposal retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: Proposal ID
+ *                   example: "proposal123"
+ *                 event_id:
+ *                   type: string
+ *                   description: Event ID
+ *                   example: "event456"
+ *                 umkm_id:
+ *                   type: string
+ *                   description: UMKM ID
+ *                   example: "umkm789"
+ *                 status:
+ *                   type: string
+ *                   description: Proposal status
+ *                   enum: [pending, approved, rejected]
+ *                   example: "pending"
+ *                 proposal_date:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Proposal submission date
+ *                   example: "2024-01-15T10:30:00Z"
+ *                 description:
+ *                   type: string
+ *                   description: Proposal description
+ *                   example: "Proposal untuk ikut serta dalam pameran UMKM"
+ *                 umkm:
+ *                   type: object
+ *                   description: UMKM details
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "umkm789"
+ *                     name:
+ *                       type: string
+ *                       example: "Toko Bakso Malang"
+ *                     email:
+ *                       type: string
+ *                       example: "bakso@example.com"
+ *                     phone:
+ *                       type: string
+ *                       example: "+6281234567890"
+ *                     address:
+ *                       type: string
+ *                       example: "Jl. Malang Raya No. 123"
+ *                 event:
+ *                   type: object
+ *                   description: Event details
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "event456"
+ *                     title:
+ *                       type: string
+ *                       example: "Pameran UMKM Jakarta 2024"
+ *                     description:
+ *                       type: string
+ *                       example: "Pameran untuk promosi produk UMKM"
+ *                     start_date:
+ *                       type: string
+ *                       format: date
+ *                       example: "2024-03-15"
+ *                     end_date:
+ *                       type: string
+ *                       format: date
+ *                       example: "2024-03-17"
+ *                     location:
+ *                       type: string
+ *                       example: "JCC Senayan"
+ *                     eo_id:
+ *                       type: string
+ *                       example: "eo123"
+ */
+router.get(
+  "/getallproposal",
+  authenticateToken,
+  getAllProposalByEO,
+  (req, res) => {
+    res.json(req.proposals);
+  }
+);
 module.exports = router;
