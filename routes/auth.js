@@ -304,9 +304,20 @@ router.post("/send-otp", async (req, res) => {
       port: 587,
       secure: false,
       auth: {
-        user: "apikey",
+        user: process.env.SENDGRID_USERNAME,
         pass: process.env.SENDGRID_API_KEY,
       },
+    });
+    
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+        <h2>Your OTP Code</h2>
+        <p>Your verification code is: <strong>${otp}</strong></p>
+        <p>This code will expire in 5 minutes.</p>
+      `,
     });
 
     console.log(`OTP sent to ${email}: ${otp}`);
