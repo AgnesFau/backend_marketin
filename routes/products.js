@@ -56,7 +56,7 @@ router.get(
  *     summary: Add new product for authenticated UMKM
  *     tags: [Product]
  *     security:
- *       - bearerAuth: []   
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -79,7 +79,11 @@ router.get(
  *               productsphoto:
  *                 type: string
  *                 format: binary
- *                 description: Foto produk yang diupload
+ *               expiryDate :
+ *                 type: string
+ *                 format: date
+ *                 description: Tanggal kedaluwarsa produk
+ *                 example: "2023-12-31"
  *     responses:
  *       201:
  *         description: Produk berhasil ditambahkan
@@ -112,9 +116,9 @@ router.get(
  *                     productsphoto:
  *                       type: string
  *                       format: binary
- *                     expiredAt:
+ *                     expiryDate:
  *                       type: string
- *                       format: date-time
+ *                       format: date
  */
 router.post(
   "/addproducts",

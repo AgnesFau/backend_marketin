@@ -70,7 +70,7 @@ async function addProduct(req, res, next) {
       price,
       description,
       createdAt: new Date(),
-      expiryDate: expiryDate ? new Date(expiryDate) : null,
+      expiryDate,
     };
 
     let productPhoto = null;
