@@ -240,8 +240,8 @@ router.post("/register", upload.single("logo"), async (req, res) => {
 
 const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
-  port: 2525,
-  secure: true,
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
