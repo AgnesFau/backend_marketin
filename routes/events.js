@@ -6,6 +6,7 @@ const {
   getAllEventData,
   addNewEvent,
   updateEvent,
+  cancelEvent,
 } = require("../controller/eventcontroller");
 var router = express.Router();
 const multer = require("multer");
@@ -318,6 +319,46 @@ router.put(
     { name: "mapping", maxCount: 1 },
   ]),
   updateEvent
+);
+
+/**
+ * @openapi
+ * /events/cancelevent/{id}:
+ *   put:
+ *     summary: Cancel event
+ *     description: Mark an existing event as cancelled (status updated to "cancelled").
+ *     tags:
+ *       - Events
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the event to cancel
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Event successfully cancelled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *                   example: "cancelled"
+ *                 cancelledAt:
+ *                   type: string
+ *                   format: date-time
+ */
+router.put(
+  "/cancelevent/:id",
+  authenticateToken,
+  cancelEvent
 );
 
 module.exports = router;

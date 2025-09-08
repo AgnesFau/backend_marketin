@@ -270,10 +270,49 @@ async function updateEvent(req, res, next) {
   }
 }
 
+async function cancelEvent(req, res, next) {
+  try {
+    const eventId = req.params.id;
+    if (!eventId) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
+    const eventRef = db.collection("events").doc(eventId);
+    const eventDoc = await eventRef.get();
+
+    if (!eventDoc.exists) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const existingEvent = eventDoc.data();
+
+    if (existingEvent.status === "cancelled") {
+      return res.status(400).json({ error: "Event is already cancelled" });
+    }
+
+    const updatedData = {
+      status: "cancelled",
+      cancelledAt: new Date().toISOString(),
+    };
+
+    await eventRef.update(updatedData);
+
+    res.status(200).json({
+      id: eventId,
+      ...existingEvent,
+      ...updatedData,
+    });
+  } catch (error) {
+    console.error("Error cancelling event:", error);
+    res.status(500).json({ error: "Failed to cancel event: " + error.message });
+  }
+}
+
 module.exports = {
   getEventDataById,
   getEventDataByEO,
   getAllEventData,
   addNewEvent,
   updateEvent,
+  cancelEvent,
 };
