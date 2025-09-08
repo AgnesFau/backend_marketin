@@ -108,8 +108,6 @@ router.get("/eventbyid/:id", getEventDataById, function (req, res, next) {
  *                   eoId:
  *                     type: string
  *                     example: "EO123"
- *       401:
- *         description: Unauthorized, token tidak valid
  */
 router.get(
   "/eventbyeo/:id",

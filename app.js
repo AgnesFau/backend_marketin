@@ -9,6 +9,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var authRouter = require("./routes/auth");
 var eventRouter = require("./routes/events");
+var productRouter = require("./routes/products");
 
 var app = express();
 
@@ -46,5 +47,6 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/events", eventRouter);
+app.use("/products", productRouter);
 
 module.exports = app;
