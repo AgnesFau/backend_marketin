@@ -12,6 +12,19 @@ const upload = multer({ storage: multer.memoryStorage() });
 var express = require("express");
 var router = express.Router();
 
+const transporter = nodemailer.createTransport({
+  host: "smtp.sendgrid.net",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SENDGRID_USERNAME,
+    pass: process.env.SENDGRID_API_KEY,
+  },
+  connectionTimeout: 10000,
+  greetingTimeout: 5000,
+  socketTimeout: 10000,
+});
+
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -238,14 +251,6 @@ router.post("/register", upload.single("logo"), async (req, res) => {
   }
 });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
 /* POST send OTP */
 /**
  * @openapi
@@ -299,16 +304,6 @@ router.post("/send-otp", async (req, res) => {
   otpStore.set(email, { otp, expiresAt });
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.sendgrid.net",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SENDGRID_USERNAME,
-        pass: process.env.SENDGRID_API_KEY,
-      },
-    });
-    
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
