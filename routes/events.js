@@ -10,6 +10,7 @@ const {
 } = require("../controller/eventcontroller");
 var router = express.Router();
 const multer = require("multer");
+const { addProposal } = require("../controller/proposalcontroller");
 const upload = multer({ storage: multer.memoryStorage() });
 
 /**
@@ -353,10 +354,41 @@ router.put(
  *                   type: string
  *                   format: date-time
  */
-router.put(
-  "/cancelevent/:id",
+router.put("/cancelevent/:id", authenticateToken, cancelEvent);
+
+/**
+ * @openapi
+ * /events/addproposal:
+ *   post:
+ *     summary: Add proposal for an event
+ *     description: Upload proposal with event ID and struk file. Requires Bearer Token.
+ *     tags:
+ *       - Proposal
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               eventId:
+ *                 type: string
+ *                 description: ID of the event
+ *               struk:
+ *                 type: string
+ *                 format: binary
+ *                 description: Receipt file (struk)
+ *     responses:
+ *       201:
+ *         description: Proposal added successfully
+ */
+router.post(
+  "/addproposal",
   authenticateToken,
-  cancelEvent
+  upload.fields([{ name: "struk", maxCount: 1 }]),
+  addProposal
 );
 
 module.exports = router;
