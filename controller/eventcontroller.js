@@ -104,6 +104,7 @@ async function addNewEvent(req, res, next) {
     }
 
     const eo_id = req.user.uid;
+    const status = "active";
 
     let posterUrl = null;
     if (req.files && req.files.poster) {
@@ -154,6 +155,7 @@ async function addNewEvent(req, res, next) {
       contact_person,
       close_registration,
       eo_id,
+      status,
       createdAt: new Date().toISOString(),
     };
 
@@ -166,9 +168,112 @@ async function addNewEvent(req, res, next) {
   }
 }
 
+async function updateEvent(req, res, next) {
+  try {
+    const eventId = req.params.id;
+    if (!eventId) {
+      return res.status(400).json({ error: "Event ID is required" });
+    }
+
+    let {
+      name,
+      address,
+      description,
+      category,
+      date,
+      contact_person,
+      close_registration,
+    } = req.body;
+
+    const eventDoc = await db.collection("events").doc(eventId).get();
+    if (!eventDoc.exists) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const existingEvent = eventDoc.data();
+
+    if (typeof category === "string") {
+      try {
+        category = JSON.parse(category);
+      } catch (err) {
+        return res
+          .status(400)
+          .json({ error: "Category must be valid JSON: " + err });
+      }
+    }
+
+    if (category && (typeof category !== "object" || Array.isArray(category))) {
+      return res
+        .status(400)
+        .json({ error: "Category must be a map of position and price" });
+    }
+
+    const eo_id = req.user.uid;
+
+    let posterUrl = existingEvent.poster || null;
+    if (req.files && req.files.poster) {
+      const posterFile = req.files.poster[0];
+      const { data, error: uploadError } = await supabase.storage
+        .from("events")
+        .upload(
+          `posters/${eo_id}_${posterFile.originalname}`,
+          posterFile.buffer,
+          {
+            contentType: posterFile.mimetype,
+            upsert: true,
+          }
+        );
+
+      if (uploadError) throw uploadError;
+
+      posterUrl = supabase.storage.from("events").getPublicUrl(data.path)
+        .data.publicUrl;
+    }
+
+    let mappingUrl = existingEvent.mapping || null;
+    if (req.files && req.files.mapping) {
+      const mappingFile = req.files.mapping[0];
+      const mappingPath = `mappings/${eo_id}_${mappingFile.originalname}`;
+
+      const { data, error: mappingError } = await supabase.storage
+        .from("events")
+        .upload(mappingPath, mappingFile.buffer, {
+          contentType: mappingFile.mimetype,
+          upsert: true,
+        });
+
+      if (mappingError) throw mappingError;
+
+      mappingUrl = supabase.storage.from("events").getPublicUrl(data.path)
+        .data.publicUrl;
+    }
+
+    const updatedEvent = {
+      ...(name && { name }),
+      ...(address && { address }),
+      ...(description && { description }),
+      ...(category && { category }),
+      ...(date && { date }),
+      ...(contact_person && { contact_person }),
+      ...(close_registration && { close_registration }),
+      poster: posterUrl,
+      mapping: mappingUrl,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.collection("events").doc(eventId).update(updatedEvent);
+
+    res.status(200).json({ id: eventId, ...existingEvent, ...updatedEvent });
+  } catch (error) {
+    console.error("Error updating event:", error);
+    res.status(500).json({ error: "Failed to update event: " + error.message });
+  }
+}
+
 module.exports = {
   getEventDataById,
   getEventDataByEO,
   getAllEventData,
   addNewEvent,
+  updateEvent,
 };

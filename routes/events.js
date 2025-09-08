@@ -5,6 +5,7 @@ const {
   getEventDataById,
   getAllEventData,
   addNewEvent,
+  updateEvent,
 } = require("../controller/eventcontroller");
 var router = express.Router();
 const multer = require("multer");
@@ -228,6 +229,95 @@ router.post(
     { name: "mapping", maxCount: 1 },
   ]),
   addNewEvent
+);
+
+/**
+ * @openapi
+ * /events/editevent/{id}:
+ *   put:
+ *     summary: Update existing event
+ *     description: Update event details, including optional poster and mapping files.
+ *     tags:
+ *       - Events
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the event to update
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Updated Music Festival 2025"
+ *               address:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               category:
+ *                 type: string
+ *                 example: '{"VIP": 600000, "Regular": 300000}'
+ *               date:
+ *                 type: string
+ *                 format: date-time
+ *               contact_person:
+ *                 type: string
+ *               close_registration:
+ *                 type: string
+ *                 format: date-time
+ *               poster:
+ *                 type: string
+ *                 format: binary
+ *               mapping:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Event successfully updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                 name:
+ *                   type: string
+ *                 address:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 category:
+ *                   type: object
+ *                 date:
+ *                   type: string
+ *                 contact_person:
+ *                   type: string
+ *                 close_registration:
+ *                   type: string
+ *                 poster:
+ *                   type: string
+ *                 mapping:
+ *                   type: string
+ *                 updatedAt:
+ *                   type: string
+ */
+router.put(
+  "/editevent/:id",
+  authenticateToken,
+  upload.fields([
+    { name: "poster", maxCount: 1 },
+    { name: "mapping", maxCount: 1 },
+  ]),
+  updateEvent
 );
 
 module.exports = router;
