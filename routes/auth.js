@@ -12,19 +12,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 var express = require("express");
 var router = express.Router();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.sendgrid.net",
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.SENDGRID_USERNAME,
-    pass: process.env.SENDGRID_API_KEY,
-  },
-  connectionTimeout: 10000,
-  greetingTimeout: 5000,
-  socketTimeout: 10000,
-});
-
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -249,6 +236,16 @@ router.post("/register", upload.single("logo"), async (req, res) => {
     console.error("Register error:", err);
     res.status(500).json({ error: err.message });
   }
+});
+
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 2525,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 /* POST send OTP */
