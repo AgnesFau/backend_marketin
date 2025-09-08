@@ -299,15 +299,14 @@ router.post("/send-otp", async (req, res) => {
   otpStore.set(email, { otp, expiresAt });
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Your OTP Code",
-      html: `
-        <h2>Your OTP Code</h2>
-        <p>Your verification code is: <strong>${otp}</strong></p>
-        <p>This code will expire in 5 minutes.</p>
-      `,
+    const transporter = nodemailer.createTransport({
+      host: "smtp.sendgrid.net",
+      port: 587,
+      secure: false,
+      auth: {
+        user: "apikey",
+        pass: process.env.SENDGRID_API_KEY,
+      },
     });
 
     console.log(`OTP sent to ${email}: ${otp}`);
