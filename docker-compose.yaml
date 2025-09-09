@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   marketiin-api:
@@ -12,3 +12,13 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     restart: unless-stopped
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http marketiin-api:3000
+    ports:
+      - "4040:4040"
+    environment:
+      - NGROK_AUTHTOKEN=32Rpk8LQAWU5AHmMTO2oWAwVEoI_5ZNd7rapgZsYY9hEDxpYu
+    depends_on:
+      - marketiin-api
