@@ -13,6 +13,7 @@ const multer = require("multer");
 const {
   addProposal,
   getAllProposalByEO,
+  updateProposalStatus,
 } = require("../controller/proposalcontroller");
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -492,4 +493,60 @@ router.get(
     res.json(req.proposals);
   }
 );
+
+/**
+ * @openapi
+ * /events/accoptorreject/{id}:
+ *   put:
+ *     summary: Update proposal status (accept/reject)
+ *     description: EO dapat mengubah status proposal dari `pending` menjadi `accepted` atau `rejected` dengan memberikan alasan.
+ *     tags:
+ *       - Proposal
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID dari event
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [accepted, rejected]
+ *                 description: Status baru proposal
+ *               description:
+ *                 type: string
+ *                 description: Alasan menerima atau menolak proposal
+ *             example:
+ *               status: accepted
+ *               description: "Proposal sesuai dengan kriteria event"
+ *     responses:
+ *       200:
+ *         description: Proposal status berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: string
+ *                   description: Proposal ID
+ *                 status:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                   nullable: true
+ */
+router.put("/accoptorreject/:id", authenticateToken, updateProposalStatus);
+
 module.exports = router;
