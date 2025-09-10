@@ -4,6 +4,8 @@ const {
   addProduct,
   addMidnightSale,
   deleteMidnightSale,
+  getAllMidnightSale,
+  searchProduct,
 } = require("../controller/productcontroller");
 const { authenticateToken } = require("../controller/usercontroller");
 var router = express.Router();
@@ -184,7 +186,7 @@ router.post(
  *                         type: string
  *                         example: "https://storage.supabase.co/products/apple.jpg"
  */
-router.get("/:id/products", getProductByUMKMId, (req, res) => {
+router.get("/:id/products", searchProduct, (req, res) => {
   res.json(req.products || []);
 });
 
@@ -270,5 +272,17 @@ router.put("/:productId/sale", authenticateToken, addMidnightSale);
  *                   example: "abc123"
  */
 router.delete("/:productId/sale", authenticateToken, deleteMidnightSale);
+
+/**
+ * @openapi
+ * /products/midnightsale:
+ *   get:
+ *     summary: Get all products that are on midnight sale
+ *     tags: [Product]
+ *     responses:
+ *       200:
+ *         description: List of products with midnight sale
+ */
+router.get("/midnightsale", getAllMidnightSale);
 
 module.exports = router;

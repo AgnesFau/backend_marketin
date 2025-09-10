@@ -112,7 +112,7 @@ async function addProduct(req, res, next) {
   }
 }
 
-async function getProductByUMKMId(req, res, next) {
+async function searchProduct(req, res, next) {
   try {
     const umkmId = req.params.id;
     const searchQuery = req.query.q || "";
@@ -271,4 +271,34 @@ async function deleteMidnightSale(req, res, next) {
   }
 }
 
-module.exports = { getProductByUMKMId, addProduct, addMidnightSale, deleteMidnightSale };
+async function getAllMidnightSale(req, res, next) {
+  try {
+    const productsSnap = await db
+      .collection("products")
+      .where("salePrice", "!=", null) 
+      .get();
+
+    if (productsSnap.empty) {
+      return res.status(404).json({ error: "No midnight sale products found" });
+    }
+
+    const products = productsSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.status(200).json({ products });
+  } catch (error) {
+    console.error("Error fetching midnight sale products:", error);
+    res.status(500).json({ error: "Failed to fetch midnight sale products" });
+  }
+}
+
+module.exports = {
+  getProductByUMKMId,
+  addProduct,
+  addMidnightSale,
+  deleteMidnightSale,
+  getAllMidnightSale,
+  searchProduct,
+};
