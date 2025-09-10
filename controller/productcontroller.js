@@ -112,4 +112,106 @@ async function addProduct(req, res, next) {
   }
 }
 
+async function getProductByUMKMId(req, res, next) {
+  try {
+    const umkmId = req.params.id;
+    const searchQuery = req.query.q || "";
+
+    const userDoc = await db
+      .collection("users")
+      .where("uid", "==", umkmId)
+      .get();
+
+    if (userDoc.empty) {
+      return res.status(404).json({ error: "UMKM not found" });
+    }
+
+    const userData = userDoc.docs[0].data();
+    const productIds = (userData.list_product || []).filter(
+      (id) => typeof id === "string" && id.trim() !== ""
+    );
+
+    if (productIds.length === 0) {
+      return res.status(404).json({ error: "No products found for this UMKM" });
+    }
+
+    const productPromises = productIds.map(async (productId) => {
+      const productDoc = await db.collection("products").doc(productId).get();
+      if (productDoc.exists) {
+        return {
+          id: productDoc.id,
+          ...productDoc.data(),
+        };
+      }
+      return null;
+    });
+
+    let products = (await Promise.all(productPromises)).filter(Boolean);
+
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+
+      products = products
+        .map((p) => {
+          const lowerName = p.name.toLowerCase();
+          const directMatch = lowerName.includes(lowerQuery);
+          const similarity = levenshtein(lowerQuery, lowerName);
+
+          return {
+            ...p,
+            similarity,
+            directMatch,
+          };
+        })
+        .filter((p) => p.directMatch || p.similarity <= 3)
+        .sort((a, b) => {
+          if (a.directMatch && !b.directMatch) return -1;
+          if (!a.directMatch && b.directMatch) return 1;
+          return a.similarity - b.similarity;
+        });
+    }
+
+    if (products.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No matching products found for this UMKM" });
+    }
+
+    res.json({ products });
+  } catch (error) {
+    console.error("Error fetching products by UMKM:", error);
+    res.status(500).json({ error: "Failed to fetch products by UMKM" });
+  }
+}
+
+function levenshtein(a, b) {
+  const matrix = [];
+
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
 module.exports = { getProductByUMKMId, addProduct };

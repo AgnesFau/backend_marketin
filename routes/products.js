@@ -127,4 +127,63 @@ router.post(
   addProduct
 );
 
+/**
+ * @swagger
+ * /products/{id}/products:
+ *   get:
+ *     summary: Get products by UMKM ID (with optional fuzzy search)
+ *     description: |
+ *       Mengambil semua produk berdasarkan **UMKM ID**.
+ *       Bisa ditambahkan query `q` untuk melakukan pencarian produk dengan **Levenshtein Distance** (typo-tolerant search).
+ *     tags:
+ *       - Product
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: UMKM ID
+ *       - in: query
+ *         name: q
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Kata kunci pencarian produk (contoh typo-tolerant search, misalnya `aple` untuk "Apple")
+ *     responses:
+ *       200:
+ *         description: Daftar produk milik UMKM
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 products:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: "abc123"
+ *                       name:
+ *                         type: string
+ *                         example: "Apple"
+ *                       price:
+ *                         type: number
+ *                         example: 10000
+ *                       description:
+ *                         type: string
+ *                         example: "Fresh apple"
+ *                       expiryDate:
+ *                         type: string
+ *                         example: "2025-12-31"
+ *                       productPhoto:
+ *                         type: string
+ *                         example: "https://storage.supabase.co/products/apple.jpg"
+ */
+router.get("/:id/products", getProductByUMKMId, (req, res) => {
+  res.json(req.products || []);
+});
+
 module.exports = router;
