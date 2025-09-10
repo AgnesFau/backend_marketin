@@ -128,7 +128,7 @@ router.get(
  * /events/addnewevent:
  *   post:
  *     summary: Create a new event
- *     tags: [Events]
+ *     tags: [Event]
  *     requestBody:
  *       required: true
  *       content:
@@ -242,7 +242,7 @@ router.post(
  *     summary: Update existing event
  *     description: Update event details, including optional poster and mapping files.
  *     tags:
- *       - Events
+ *       - Event
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -331,7 +331,7 @@ router.put(
  *     summary: Cancel event
  *     description: Mark an existing event as cancelled (status updated to "cancelled").
  *     tags:
- *       - Events
+ *       - Event
  *     security:
  *       - bearerAuth: []
  *     parameters:
