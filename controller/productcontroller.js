@@ -214,4 +214,61 @@ function levenshtein(a, b) {
   return matrix[b.length][a.length];
 }
 
-module.exports = { getProductByUMKMId, addProduct };
+async function addMidnightSale(req, res, next) {
+  try {
+    const { productId } = req.params;
+    const { salePrice } = req.body;
+
+    if (salePrice === undefined) {
+      return res
+        .status(400)
+        .json({ error: "Missing required field: salePrice" });
+    }
+
+    const productRef = db.collection("products").doc(productId);
+    const productDoc = await productRef.get();
+
+    if (!productDoc.exists) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    await productRef.update({
+      salePrice: salePrice,
+    });
+
+    res.status(200).json({
+      message: "Sale price added to product successfully",
+      productId,
+      salePrice,
+    });
+  } catch (error) {
+    console.error("Error adding sale price:", error);
+    res.status(500).json({ error: "Failed to add sale price" });
+  }
+}
+
+async function deleteMidnightSale(req, res, next) {
+  try {
+    const { productId } = req.params;
+    const productRef = db.collection("products").doc(productId);
+    const productDoc = await productRef.get();
+
+    if (!productDoc.exists) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    await productRef.update({
+      salePrice: admin.firestore.FieldValue.delete(),
+    });
+
+    res.status(200).json({
+      message: "Sale price removed from product successfully",
+      productId,
+    });
+  } catch (error) {
+    console.error("Error removing sale price:", error);
+    res.status(500).json({ error: "Failed to remove sale price" });
+  }
+}
+
+module.exports = { getProductByUMKMId, addProduct, addMidnightSale, deleteMidnightSale };

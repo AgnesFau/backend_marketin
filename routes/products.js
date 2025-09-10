@@ -2,6 +2,8 @@ var express = require("express");
 const {
   getProductByUMKMId,
   addProduct,
+  addMidnightSale,
+  deleteMidnightSale,
 } = require("../controller/productcontroller");
 const { authenticateToken } = require("../controller/usercontroller");
 var router = express.Router();
@@ -185,5 +187,88 @@ router.post(
 router.get("/:id/products", getProductByUMKMId, (req, res) => {
   res.json(req.products || []);
 });
+
+/**
+ * @openapi
+ * /products/{productId}/sale:
+ *   put:
+ *     summary: Add or update sale price for a product
+ *     description: Update field `salePrice` pada produk tertentu milik UMKM.
+ *     tags:
+ *       - Product
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID produk
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - salePrice
+ *             properties:
+ *               salePrice:
+ *                 type: number
+ *                 example: 8000
+ *     responses:
+ *       200:
+ *         description: Sale price added to product successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Sale price added to product successfully"
+ *                 productId:
+ *                   type: string
+ *                   example: "abc123"
+ *                 salePrice:
+ *                   type: number
+ *                   example: 8000
+ */
+router.put("/:productId/sale", authenticateToken, addMidnightSale);
+
+/**
+ * @openapi
+ * /products/{productId}/sale:
+ *   delete:
+ *     summary: Remove sale price from a product
+ *     description: Hapus field `salePrice` dari produk tertentu milik UMKM.
+ *     tags:
+ *       - Product
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: productId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID produk
+ *     responses:
+ *       200:
+ *         description: Sale price removed from product successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Sale price removed from product successfully"
+ *                 productId:
+ *                   type: string
+ *                   example: "abc123"
+ */
+router.delete("/:productId/sale", authenticateToken, deleteMidnightSale);
 
 module.exports = router;
