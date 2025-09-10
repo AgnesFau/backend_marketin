@@ -78,10 +78,30 @@ router.post("/login", async function (req, res) {
       }
     );
 
-    res.status(200).json(response.data);
+    const { localId, idToken } = response.data;
+
+    const userSnap = await db
+      .collection("users")
+      .where("uid", "==", localId)
+      .get();
+
+    if (userSnap.empty) {
+      return res
+        .status(404)
+        .json({ error: "User data not found in Firestore" });
+    }
+
+    const userData = userSnap.docs[0].data();
+
+    res.status(200).json({
+      ...response.data,
+      role: userData.role || "user",
+    });
   } catch (err) {
     console.error("Login error:", err.response?.data || err.message);
-    res.status(401).json({ error: "Invalid email or password" + err.message });
+    res
+      .status(401)
+      .json({ error: "Invalid email or password: " + err.message });
   }
 });
 
