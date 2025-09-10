@@ -9,14 +9,12 @@ async function getProductByUMKMId(req, res, next) {
       .collection("users")
       .where("uid", "==", umkmId)
       .get();
+
     if (userDoc.empty) {
       return res.status(404).json({ error: "UMKM not found" });
     }
 
-    console.log("User Data:", userDoc.docs[0].data());
     const userData = userDoc.docs[0].data();
-    console.log("Product IDs:", userData.list_product);
-
     const productIds = (userData.list_product || []).filter(
       (id) => typeof id === "string" && id.trim() !== ""
     );
@@ -38,7 +36,11 @@ async function getProductByUMKMId(req, res, next) {
 
     const products = (await Promise.all(productPromises)).filter(Boolean);
 
-    req.products = products;
+    const midnightSale = products.filter((p) => p.salePrice !== undefined);
+    const regular = products.filter((p) => p.salePrice === undefined);
+
+    req.products = { midnightSale, regular };
+
     next();
   } catch (error) {
     console.error("Error fetching products by UMKM:", error);
@@ -275,7 +277,7 @@ async function getAllMidnightSale(req, res, next) {
   try {
     const productsSnap = await db
       .collection("products")
-      .where("salePrice", "!=", null) 
+      .where("salePrice", "!=", null)
       .get();
 
     if (productsSnap.empty) {
