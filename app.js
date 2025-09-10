@@ -10,6 +10,7 @@ var usersRouter = require("./routes/users");
 var authRouter = require("./routes/auth");
 var eventRouter = require("./routes/events");
 var productRouter = require("./routes/products");
+var umkmRouter = require("./routes/umkm");
 
 var app = express();
 
@@ -48,5 +49,6 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/events", eventRouter);
 app.use("/products", productRouter);
+app.use("/umkm", umkmRouter);
 
 module.exports = app;

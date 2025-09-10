@@ -88,7 +88,7 @@ router.get("/eventbyid/:id", getEventDataById, function (req, res, next) {
 
 /**
  * @openapi
- * /events/eventbyeo/{id}:
+ * /events/eventbyeo:
  *   get:
  *     summary: Ambil semua event berdasarkan Event Organizer (EO)
  *     tags: [Event]
@@ -115,7 +115,7 @@ router.get("/eventbyid/:id", getEventDataById, function (req, res, next) {
  *                     example: "EO123"
  */
 router.get(
-  "/eventbyeo/:id",
+  "/eventbyeo",
   authenticateToken,
   getEventDataByEO,
   function (req, res, next) {
