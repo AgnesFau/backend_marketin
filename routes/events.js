@@ -157,13 +157,13 @@ router.get(
  *                       type: number
  *                       example: 500000
  *                 example:
- *                   cat1:
+ *                   category:
  *                     position: "Cat 1"
  *                     price: 500000
- *                   cat2:
+ *                   category:
  *                     position: "Cat 2"
  *                     price: 350000
- *                   cat3:
+ *                   category:
  *                     position: "Cat 3"
  *                     price: 200000
  *               date:
