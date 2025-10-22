@@ -204,8 +204,8 @@ router.post(
  * @openapi
  * /events/editevent/{id}:
  *   put:
- *     summary: Update existing event
- *     description: Update event details, including optional poster and mapping files.
+ *     summary: Update an existing event
+ *     description: Update event details, including text fields, categories, and optional poster/mapping uploads.
  *     tags:
  *       - Event
  *     security:
@@ -218,7 +218,7 @@ router.post(
  *         schema:
  *           type: string
  *     requestBody:
- *       required: false
+ *       required: true
  *       content:
  *         multipart/form-data:
  *           schema:
@@ -229,25 +229,51 @@ router.post(
  *                 example: "Updated Music Festival 2025"
  *               address:
  *                 type: string
+ *                 example: "Jakarta Convention Center"
  *               description:
  *                 type: string
+ *                 example: "Konser musik terbesar tahun ini dengan line-up internasional."
  *               category:
- *                 type: string
- *                 example: '{"VIP": 600000, "Regular": 300000}'
+ *                 type: array
+ *                 description: List of ticket categories with position and price
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "cat1"
+ *                     position:
+ *                       type: string
+ *                       example: "VIP"
+ *                     price:
+ *                       type: number
+ *                       example: 600000
+ *                 example:
+ *                   - id: "cat1"
+ *                     position: "VIP"
+ *                     price: 600000
+ *                   - id: "cat2"
+ *                     position: "Regular"
+ *                     price: 300000
  *               date:
  *                 type: string
  *                 format: date-time
+ *                 example: "2025-12-12T19:00:00Z"
  *               contact_person:
  *                 type: string
+ *                 example: "+628123456789"
  *               close_registration:
  *                 type: string
  *                 format: date-time
+ *                 example: "2025-12-10T00:00:00Z"
  *               poster:
  *                 type: string
  *                 format: binary
+ *                 description: Poster image file
  *               mapping:
  *                 type: string
  *                 format: binary
+ *                 description: Seating or event layout image file
  *     responses:
  *       200:
  *         description: Event successfully updated
@@ -256,28 +282,50 @@ router.post(
  *             schema:
  *               type: object
  *               properties:
- *                 id:
+ *                 message:
  *                   type: string
- *                 name:
- *                   type: string
- *                 address:
- *                   type: string
- *                 description:
- *                   type: string
- *                 category:
+ *                   example: "Event successfully updated"
+ *                 event:
  *                   type: object
- *                 date:
- *                   type: string
- *                 contact_person:
- *                   type: string
- *                 close_registration:
- *                   type: string
- *                 poster:
- *                   type: string
- *                 mapping:
- *                   type: string
- *                 updatedAt:
- *                   type: string
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     address:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     category:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           position:
+ *                             type: string
+ *                           price:
+ *                             type: number
+ *                     date:
+ *                       type: string
+ *                     contact_person:
+ *                       type: string
+ *                     close_registration:
+ *                       type: string
+ *                     poster:
+ *                       type: string
+ *                     mapping:
+ *                       type: string
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Invalid input or missing fields
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Server error during update
  */
 router.put(
   "/editevent/:id",

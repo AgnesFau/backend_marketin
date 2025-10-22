@@ -174,6 +174,14 @@ async function updateEvent(req, res, next) {
       return res.status(400).json({ error: "Event ID is required" });
     }
 
+    const eventDoc = await db.collection("events").doc(eventId).get();
+    if (!eventDoc.exists) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+
+    const existingEvent = eventDoc.data();
+    const eo_id = req.user.uid;
+
     let {
       name,
       address,
@@ -184,64 +192,67 @@ async function updateEvent(req, res, next) {
       close_registration,
     } = req.body;
 
-    const eventDoc = await db.collection("events").doc(eventId).get();
-    if (!eventDoc.exists) {
-      return res.status(404).json({ error: "Event not found" });
-    }
-
-    const existingEvent = eventDoc.data();
-
     if (typeof category === "string") {
       try {
         category = JSON.parse(category);
       } catch (err) {
         return res
           .status(400)
-          .json({ error: "Category must be valid JSON: " + err });
+          .json({ error: "Invalid category format. Must be valid JSON." });
       }
     }
 
-    if (category && (typeof category !== "object" || Array.isArray(category))) {
-      return res
-        .status(400)
-        .json({ error: "Category must be a map of position and price" });
+    if (
+      category &&
+      (!Array.isArray(category) || typeof category !== "object")
+    ) {
+      return res.status(400).json({
+        error:
+          "Category must be an array of objects, e.g. [{id:'cat1',position:'VIP',price:600000}]",
+      });
     }
 
-    const eo_id = req.user.uid;
-
     let posterUrl = existingEvent.poster || null;
-    if (req.files && req.files.poster) {
+    if (req.files && req.files.poster && req.files.poster.length > 0) {
       const posterFile = req.files.poster[0];
+      const filePath = `posters/${eo_id}_${Date.now()}_${
+        posterFile.originalname
+      }`;
+
       const { data, error: uploadError } = await supabase.storage
         .from("events")
-        .upload(
-          `posters/${eo_id}_${posterFile.originalname}`,
-          posterFile.buffer,
-          {
-            contentType: posterFile.mimetype,
-            upsert: true,
-          }
-        );
+        .upload(filePath, posterFile.buffer, {
+          contentType: posterFile.mimetype,
+          upsert: true,
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Poster upload error:", uploadError.message);
+        throw new Error("Failed to upload poster to Supabase.");
+      }
 
       posterUrl = supabase.storage.from("events").getPublicUrl(data.path)
         .data.publicUrl;
     }
 
     let mappingUrl = existingEvent.mapping || null;
-    if (req.files && req.files.mapping) {
+    if (req.files && req.files.mapping && req.files.mapping.length > 0) {
       const mappingFile = req.files.mapping[0];
-      const mappingPath = `mappings/${eo_id}_${mappingFile.originalname}`;
+      const filePath = `mappings/${eo_id}_${Date.now()}_${
+        mappingFile.originalname
+      }`;
 
       const { data, error: mappingError } = await supabase.storage
         .from("events")
-        .upload(mappingPath, mappingFile.buffer, {
+        .upload(filePath, mappingFile.buffer, {
           contentType: mappingFile.mimetype,
           upsert: true,
         });
 
-      if (mappingError) throw mappingError;
+      if (mappingError) {
+        console.error("Mapping upload error:", mappingError.message);
+        throw new Error("Failed to upload mapping file to Supabase.");
+      }
 
       mappingUrl = supabase.storage.from("events").getPublicUrl(data.path)
         .data.publicUrl;
@@ -262,7 +273,11 @@ async function updateEvent(req, res, next) {
 
     await db.collection("events").doc(eventId).update(updatedEvent);
 
-    res.status(200).json({ id: eventId, ...existingEvent, ...updatedEvent });
+    const result = { id: eventId, ...existingEvent, ...updatedEvent };
+    res.status(200).json({
+      message: "Event successfully updated",
+      event: result,
+    });
   } catch (error) {
     console.error("Error updating event:", error);
     res.status(500).json({ error: "Failed to update event: " + error.message });
