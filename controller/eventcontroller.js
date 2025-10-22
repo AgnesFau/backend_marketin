@@ -66,7 +66,7 @@ async function addNewEvent(req, res, next) {
       name,
       address,
       description,
-      category,
+      categories,
       date,
       contact_person,
       close_registration,
@@ -76,31 +76,28 @@ async function addNewEvent(req, res, next) {
       !name ||
       !address ||
       !description ||
-      !category ||
+      !categories ||
       !date ||
       !contact_person ||
       !close_registration
     ) {
       return res.status(400).json({ error: "Missing required fields" });
     }
-    console.log("Category parsed:", category);
 
-    if (typeof category === "string") {
+    if (typeof categories === "string") {
       try {
-        category = JSON.parse(category);
+        categories = JSON.parse(categories);
       } catch (err) {
         return res
           .status(400)
-          .json({ error: "Category must be valid JSON" + err });
+          .json({ error: "Categories must be valid JSON. " + err.message });
       }
     }
 
-    console.log("Category parsed:", category);
-
-    if (typeof category !== "object" || Array.isArray(category)) {
+    if (!Array.isArray(categories)) {
       return res
         .status(400)
-        .json({ error: "Category must be a map of position and price" });
+        .json({ error: "Categories must be an array of objects" });
     }
 
     const eo_id = req.user.uid;
@@ -149,7 +146,7 @@ async function addNewEvent(req, res, next) {
       address,
       description,
       mapping: mappingUrl,
-      category,
+      categories,
       date,
       poster: posterUrl,
       contact_person,
@@ -164,7 +161,9 @@ async function addNewEvent(req, res, next) {
     res.status(201).json({ id: eventRef.id, ...newEvent });
   } catch (error) {
     console.error("Error adding new event:", error);
-    res.status(500).json({ error: "Failed to add new event" + err });
+    res
+      .status(500)
+      .json({ error: "Failed to add new event: " + error.message });
   }
 }
 

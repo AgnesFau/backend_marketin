@@ -145,11 +145,14 @@ router.get(
  *               description:
  *                 type: string
  *                 example: "Konser musik terbesar tahun ini."
- *               category:
- *                 type: object
- *                 additionalProperties:
+ *               categories:
+ *                 type: array
+ *                 items:
  *                   type: object
  *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: "cat1"
  *                     position:
  *                       type: string
  *                       example: "Cat 1"
@@ -157,13 +160,13 @@ router.get(
  *                       type: number
  *                       example: 500000
  *                 example:
- *                   category:
+ *                   - id: "cat1"
  *                     position: "Cat 1"
  *                     price: 500000
- *                   category:
+ *                   - id: "cat2"
  *                     position: "Cat 2"
  *                     price: 350000
- *                   category:
+ *                   - id: "cat3"
  *                     position: "Cat 3"
  *                     price: 200000
  *               date:
@@ -186,44 +189,6 @@ router.get(
  *     responses:
  *       201:
  *         description: Event created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                   example: "abc123"
- *                 name:
- *                   type: string
- *                   example: "Music Concert"
- *                 address:
- *                   type: string
- *                   example: "Jakarta Convention Center"
- *                 description:
- *                   type: string
- *                   example: "Konser musik terbesar tahun ini."
- *                 mapping:
- *                   type: string
- *                   example: "https://storage.supabase.co/events/mappings/xxx.png"
- *                 category:
- *                   type: object
- *                 poster:
- *                   type: string
- *                   example: "https://storage.supabase.co/events/posters/xxx.png"
- *                 contact_person:
- *                   type: string
- *                   example: "08123456789"
- *                 close_registration:
- *                   type: string
- *                   format: date-time
- *                   example: "2025-09-09T23:59:59Z"
- *                 eo_id:
- *                   type: string
- *                   example: "user123"
- *                 createdAt:
- *                   type: string
- *                   format: date-time
  */
 router.post(
   "/addnewevent",
