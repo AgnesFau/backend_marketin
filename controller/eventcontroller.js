@@ -1,4 +1,4 @@
-const { db } = require("../database/firebase");
+const { db, admin } = require("../database/firebase");
 const supabase = require("../database/supabase");
 
 async function getEventDataById(req, res, next) {
@@ -103,6 +103,20 @@ async function addNewEvent(req, res, next) {
     const eo_id = req.user.uid;
     const status = "active";
 
+    if (!eo_id) {
+      return res.status(400).json({ error: "USER ID is required" });
+    }
+
+    const userDoc = await db
+      .collection("users")
+      .where("uid", "==", eo_id)
+      .get();
+    if (userDoc.empty) {
+      return res.status(404).json({ error: "eo not found" });
+    }
+
+    const userRef = userDoc.docs[0].ref;
+
     let posterUrl = null;
     if (req.files && req.files.poster) {
       const posterFile = req.files.poster[0];
@@ -157,8 +171,24 @@ async function addNewEvent(req, res, next) {
     };
 
     const eventRef = await db.collection("events").add(newEvent);
+    try {
+      await userRef.update({
+        list_event: admin.firestore.FieldValue.arrayUnion(eventRef.id),
+      });
+    } catch (err) {
+      console.error("Error updating list_event:", err);
+      res.status(500).json({ message: err.message });
+    }
 
-    res.status(201).json({ id: eventRef.id, ...newEvent });
+    res.status(201).json({
+      id: eventRef.id,
+      message:
+        "Updating list_event for user:" +
+        userRef.path +
+        "with event ID:" +
+        eventRef.id,
+      ...newEvent,
+    });
   } catch (error) {
     console.error("Error adding new event:", error);
     res
