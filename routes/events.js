@@ -171,15 +171,15 @@ router.get(
  *                     price: 200000
  *               date:
  *                 type: string
- *                 format: date-time
- *                 example: "2025-09-10T19:00:00Z"
+ *                 format: date
+ *                 example: "2025-09-10"
  *               contact_person:
  *                 type: string
  *                 example: "08123456789"
  *               close_registration:
  *                 type: string
- *                 format: date-time
- *                 example: "2025-09-09T23:59:59Z"
+ *                 format: date
+ *                 example: "2025-09-09"
  *               poster:
  *                 type: string
  *                 format: binary
